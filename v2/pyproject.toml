@@ -1,0 +1,13 @@
+[project]
+name = "youtube-dl-v2"
+version = "0.1.0"
+description = "YouTube video downloader script using yt-dlp"
+readme = "README.md"
+authors = [{ name = "Your Name" }]
+requires-python = ">=3.9"
+dependencies = [
+    "yt-dlp>=2024.4.9",
+]
+
+[project.scripts]
+youtube-dl-v2 = "youtube_dl_v2:main"

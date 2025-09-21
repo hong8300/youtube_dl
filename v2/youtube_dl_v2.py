@@ -1,0 +1,83 @@
+"""CLI tool to download a YouTube video as an MP4 file using yt-dlp."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
+
+# Force mp4 output while preferring mp4 video/audio streams when available.
+DEFAULT_FORMAT = "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b"
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Download a YouTube video as an MP4 file using yt-dlp."
+    )
+    parser.add_argument("url", help="YouTube video URL to download")
+    parser.add_argument(
+        "-o",
+        "--output",
+        help=(
+            "Optional output path. Provide a directory to save the file there, or a "
+            "full file path (including .mp4) to control the filename."
+        ),
+    )
+    parser.add_argument(
+        "-f",
+        "--format",
+        default=DEFAULT_FORMAT,
+        help=(
+            "yt-dlp format selection string to override the default mp4-preferring "
+            "format."
+        ),
+    )
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable the download progress output",
+    )
+    return parser.parse_args(argv)
+
+
+def build_output_template(output: str | None) -> str:
+    if not output:
+        return "%(title)s.%(ext)s"
+
+    target = Path(output).expanduser()
+    if target.suffix:
+        if target.suffix.lower() != ".mp4":
+            target = target.with_suffix(".mp4")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        return str(target)
+
+    target.mkdir(parents=True, exist_ok=True)
+    return str(target / "%(title)s.%(ext)s")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+
+    ydl_opts = {
+        "format": args.format,
+        "merge_output_format": "mp4",
+        "noplaylist": True,
+        "outtmpl": build_output_template(args.output),
+        "noprogress": args.no_progress,
+    }
+
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([args.url])
+    except DownloadError as exc:
+        sys.stderr.write(f"Download failed: {exc}\n")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
