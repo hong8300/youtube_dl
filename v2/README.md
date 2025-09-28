@@ -21,5 +21,7 @@ Optional arguments:
 - `-o/--output` – directory or full file path for the downloaded video.
 - `-f/--format` – override the default yt-dlp format string.
 - `--no-progress` – hide the progress bar output.
+- `--player-client` – comma-separated YouTube client identifiers to try (defaults to
+  `android,web`).
 
 The downloader prefers MP4-ready streams and merges to MP4 when needed.

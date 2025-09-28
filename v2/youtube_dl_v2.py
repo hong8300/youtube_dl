@@ -11,6 +11,9 @@ from yt_dlp.utils import DownloadError
 
 # Force mp4 output while preferring mp4 video/audio streams when available.
 DEFAULT_FORMAT = "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b"
+# Use an Android client first to dodge recent SABR streaming restrictions, then
+# fall back to the standard web client if needed.
+DEFAULT_PLAYER_CLIENTS = ["android", "web"]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -40,6 +43,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Disable the download progress output",
     )
+    parser.add_argument(
+        "--player-client",
+        default=",".join(DEFAULT_PLAYER_CLIENTS),
+        help=(
+            "Comma-separated YouTube client identifiers to try when fetching video "
+            "streams (e.g. android, web, tv)."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -58,8 +69,17 @@ def build_output_template(output: str | None) -> str:
     return str(target / "%(title)s.%(ext)s")
 
 
+def parse_player_clients(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+
+    return [item for item in (part.strip() for part in raw.split(",")) if item]
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+
+    player_clients = parse_player_clients(args.player_client)
 
     ydl_opts = {
         "format": args.format,
@@ -68,6 +88,11 @@ def main(argv: list[str] | None = None) -> int:
         "outtmpl": build_output_template(args.output),
         "noprogress": args.no_progress,
     }
+
+    if player_clients:
+        ydl_opts["extractor_args"] = {
+            "youtube": {"player_client": player_clients}
+        }
 
     try:
         with YoutubeDL(ydl_opts) as ydl:
