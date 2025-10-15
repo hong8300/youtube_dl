@@ -11,6 +11,9 @@ from yt_dlp.utils import DownloadError
 
 # Force mp4 output while preferring mp4 video/audio streams when available.
 DEFAULT_FORMAT = "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b"
+# Default container remux target. Allow overriding to keep high-res formats
+# that cannot be muxed into MP4 (e.g. VP9 video).
+DEFAULT_MERGE_OUTPUT_FORMAT = "mp4"
 # Use an Android client first to dodge recent SABR streaming restrictions, then
 # fall back to the standard web client if needed.
 DEFAULT_PLAYER_CLIENTS = ["android", "web"]
@@ -51,6 +54,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "streams (e.g. android, web, tv)."
         ),
     )
+    parser.add_argument(
+        "--merge-output-format",
+        default=DEFAULT_MERGE_OUTPUT_FORMAT,
+        metavar="FORMAT",
+        help=(
+            "Container format passed to yt-dlp's merge_output_format option. Use "
+            "'none' to disable forcing a container so that high-resolution "
+            "streams (e.g. VP9/WebM) remain available."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -80,14 +93,23 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
     player_clients = parse_player_clients(args.player_client)
+    merge_output_format = (
+        None
+        if args.merge_output_format is None
+        else args.merge_output_format.strip() or None
+    )
+    if merge_output_format and merge_output_format.lower() == "none":
+        merge_output_format = None
 
     ydl_opts = {
         "format": args.format,
-        "merge_output_format": "mp4",
         "noplaylist": True,
         "outtmpl": build_output_template(args.output),
         "noprogress": args.no_progress,
     }
+
+    if merge_output_format is not None:
+        ydl_opts["merge_output_format"] = merge_output_format
 
     if player_clients:
         ydl_opts["extractor_args"] = {

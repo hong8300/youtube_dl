@@ -23,5 +23,8 @@ Optional arguments:
 - `--no-progress` – hide the progress bar output.
 - `--player-client` – comma-separated YouTube client identifiers to try (defaults to
   `android,web`).
+- `--merge-output-format` – container passed to yt-dlp when merging audio/video
+  (defaults to `mp4`, use `none` to keep yt-dlp's automatic choice for higher
+  resolutions like VP9/WebM).
 
 The downloader prefers MP4-ready streams and merges to MP4 when needed.
