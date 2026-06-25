@@ -29,6 +29,9 @@ def download_subtitles(url, output_dir, info):
         'skip_download': True,  # 動画はダウンロードしない
         'nocheckcertificate': True,
         'geo_bypass': True,
+
+        # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
+        'remote_components': ['ejs:github'],
     }
 
     try:
@@ -103,6 +106,15 @@ def download_video(url, output_dir="downloads"):
         # その他のオプション
         'nocheckcertificate': True,
         'geo_bypass': True,
+
+        # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
+        # （これが無いと一部フォーマットのURLが無効になり HTTP 403 で停止する）
+        'remote_components': ['ejs:github'],
+
+        # 通信エラー/403対策のリトライ
+        'retries': 10,
+        'fragment_retries': 10,
+        'file_access_retries': 5,
 
         # ブラウザのCookieを使用（必要に応じて）
         # 'cookiesfrombrowser': 'chrome',
@@ -287,6 +299,9 @@ def list_formats(url):
         'nocheckcertificate': True,
         'geo_bypass': True,
         'extract_flat': False,  # 完全な情報を取得
+
+        # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
+        'remote_components': ['ejs:github'],
     }
 
     try:
@@ -411,6 +426,14 @@ def download_video_with_format(url, output_dir, format_code):
         'no_warnings': False,
         'nocheckcertificate': True,
         'geo_bypass': True,
+
+        # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
+        'remote_components': ['ejs:github'],
+
+        # 通信エラー/403対策のリトライ
+        'retries': 10,
+        'fragment_retries': 10,
+        'file_access_retries': 5,
     }
 
     try:

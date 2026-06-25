@@ -1,13 +1,13 @@
 [project]
-name = "youtube-dl-v2"
+name = "youtube-dl"
 version = "0.1.0"
 description = "YouTube video downloader script using yt-dlp"
 readme = "README.md"
 authors = [{ name = "Your Name" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "yt-dlp>=2024.4.9",
+    "yt-dlp>=2026.6.9",
 ]
 
 [project.scripts]
-youtube-dl-v2 = "youtube_dl_v2:main"
+youtube-dl = "youtube_dl_v3:main"

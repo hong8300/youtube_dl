@@ -4,6 +4,8 @@
 *.mov
 **/download/
 **/downloads/
+.venv/
+__pycache__/
 
 
 

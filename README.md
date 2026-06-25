@@ -1,98 +1,119 @@
-# YouTube ダウンローダー
+# YouTube Video Downloader v3.0
 
-> [!WARNING]
-> **⚠️ この README の内容は古いバージョン（v1）のものです**
->
-> 最新版のソースコードとドキュメントはすべて **`/v2`** ディレクトリに移行しました。
->
-> ### 📁 **[最新版はこちら → v2 ディレクトリ](./v2/README.md)**
->
-> 以下の内容は旧バージョンの参考情報として残しています。
+YouTube動画をダウンロードするためのシンプルなCLIツールです。`yt-dlp` と Python を使用してMP4ファイルとしてダウンロードします。
 
----
+## 特徴
 
-## 旧バージョン（v1）について
+- 🎥 高品質な動画ダウンロード
+- 🎵 音声付き動画の自動マージ
+- 📝 字幕ダウンロード（日本語・英語対応）
+- 📋 利用可能なフォーマット一覧表示
+- ⏬ リアルタイムプログレスバー
+- 🖼️ サムネイル埋め込み
+- 📊 メタデータ保持
+- ⚡ 高速ダウンロード
 
-このプログラムは、YouTubeの動画を簡単にダウンロードするためのコマンドラインツールです。最高品質のMP4形式で動画をダウンロードし、進捗状況をリアルタイムで表示します。
+## セットアップ
 
-## 機能
-
-- ダウンロード進捗のリアルタイム表示（パーセンテージ、速度、残り時間）
-- 動画の詳細情報（タイトル、長さ、視聴回数、投稿者、公開日）の表示
-- エラー処理の強化
-
-## 必要条件
-
-- Python 3.6以上
-- yt-dlp ライブラリ
-
-## インストール方法
-
-1. Condaの環境をアクティブにします（必要に応じて）：
+[uv](https://github.com/astral-sh/uv) を使用して依存関係をインストールしてください：
 
 ```bash
-conda activate work
+uv sync
 ```
 
-2. 必要なライブラリをインストールします：
-
-```bash
-pip install yt-dlp
-```
+> 💡 YouTubeの署名解決(JSチャレンジ)に JavaScript ランタイムが必要です。`deno` または `node` をインストールしておいてください（macOSなら `brew install deno`）。
 
 ## 使用方法
 
-基本的な使い方：
+### 基本的なダウンロード
 
 ```bash
-python youtube_downloader.py [YouTube URL]
+uv run youtube_dl_v3.py "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
-出力先を指定する場合：
+### 特定のフォーマットを指定してダウンロード
 
 ```bash
-python youtube_downloader.py [YouTube URL] [出力パス]
+uv run youtube_dl_v3.py "https://www.youtube.com/watch?v=VIDEO_ID" --format 137
 ```
 
-### 例
+### 利用可能なフォーマット一覧を表示
 
 ```bash
-# 基本的な使用方法（カレントディレクトリにダウンロード）
-python youtube_downloader.py https://www.youtube.com/watch?v=_yZTsJdy0Tc
-
-# 出力先を指定してダウンロード
-python youtube_downloader.py https://www.youtube.com/watch?v=_yZTsJdy0Tc /path/to/download/folder
+uv run youtube_dl_v3.py --list-formats "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
-## 出力例
+### 出力ディレクトリを指定
 
-```
-タイトル: 【鹿島アントラーズ×浦和レッズ｜ハイライト】2025明治安田J1リーグ第6節｜2025シーズン｜Jリーグ
-長さ: 434秒
-評価数: 107666回視聴
-投稿者: DAZN Japan
-公開日: 2025-03-16
-ダウンロード中...
-[youtube] Extracting URL: https://www.youtube.com/watch?v=_yZTsJdy0Tc
-[youtube] _yZTsJdy0Tc: Downloading webpage
-...
-100.0% 速度: 36.56MiB/s 残り時間: 00:00
-ダウンロード完了: /path/to/download/folder/【鹿島アントラーズ×浦和レッズ｜ハイライト】2025明治安田J1リーグ第6節｜2025シーズン｜Jリーグ.mp4
+```bash
+uv run youtube_dl_v3.py "https://www.youtube.com/watch?v=VIDEO_ID" my_videos
 ```
 
-## MP4 to MOV
-```
-# そのまま
-ffmpeg -i input.mp4 -c:v copy -c:a copy output.mov
+## オプション
 
-# 再エンコード
-ffmpeg -i input.mp4 -c:v libx264 -c:a aac output.mov
+- `--format FORMAT` - 特定のフォーマットIDを指定（例: `--format 22`）
+- `--list-formats` - 利用可能なフォーマット一覧を表示
 
-# ハードウェアエンコード(mac)
-ffmpeg -i input.mp4 -c:v h264_videotoolbox -c:a copy output.mov
+## ダウンロードされるもの
 
-```
+- **動画ファイル**: MP4形式（音声付きでマージ）
+- **字幕ファイル**: VTT形式（日本語・英語、利用可能な場合）
+- **サムネイル**: WebP形式（動画に埋め込み）
+- **メタデータ**: 動画情報（タイトル、チャンネル、再生回数など）
+
+## フォーマットについて
+
+YouTubeの動画は様々な品質・解像度で提供されています：
+
+- `137`: 1920x1080 (1080p) - 高品質
+- `136`: 1280x720 (720p) - 中品質
+- `135`: 854x480 (480p) - 低品質
+- `22`: 1280x720 + 音声 - 統合フォーマット
+
+`--list-formats` オプションで各動画の利用可能なフォーマットを確認できます。
 
 ## 注意事項
 
-- このツールはローカル的な使用目的でのみ使用してください。
+- 字幕ダウンロードはレート制限がかかる場合がありますが、動画ダウンロードは正常に行われます
+- ダウンロードしたファイルは `downloads/` フォルダに保存されます
+- 著作権のあるコンテンツのダウンロードは自己責任でお願いします
+
+## 例
+
+```bash
+# 高品質動画をダウンロード
+uv run youtube_dl_v3.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --format 137
+
+# フォーマット一覧を確認
+uv run youtube_dl_v3.py --list-formats "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# 特定のディレクトリに保存
+uv run youtube_dl_v3.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" /path/to/save
+```
+
+## トラブルシューティング
+
+- **ダウンロードが遅い場合**: ネットワーク接続を確認してください
+- **フォーマットが見つからない場合**: `--list-formats` で利用可能なフォーマットを確認してください
+- **字幕がダウンロードできない場合**: YouTubeの仕様変更により一時的に利用できない可能性があります
+- **途中で `HTTP Error 403: Forbidden` で止まる / `n function` 系のエラーが出る場合**:
+  YouTube側のプレイヤー更新に yt-dlp が追いついていないのが原因です。yt-dlp を最新化してください:
+  ```bash
+  uv lock --upgrade-package yt-dlp && uv sync
+  ```
+  （署名解決には `deno`/`node` が必要です。本ツールは `remote_components: ['ejs:github']` を有効化済みです）
+
+## ディレクトリ構成
+
+```
+.
+├── youtube_dl_v3.py   # 本体（これを使う）
+├── pyproject.toml     # 依存定義（uv）
+├── uv.lock
+├── downloads/         # ダウンロード先
+└── backup/            # 旧バージョン（v1/v2）・旧README。使用しない
+```
+
+## ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。
