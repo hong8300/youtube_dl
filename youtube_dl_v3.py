@@ -10,6 +10,11 @@ from pathlib import Path
 import yt_dlp
 from datetime import datetime
 
+# YouTube のプレイヤークライアント指定。
+# 既定の android_vr 等は GVS PO Token が必須で、無いと途中で HTTP 403 になる。
+# PO Token 不要の web_embedded を優先し、使えない動画は既定にフォールバックする。
+YOUTUBE_EXTRACTOR_ARGS = {'youtube': {'player_client': ['web_embedded', 'default']}}
+
 
 def download_subtitles(url, output_dir, info):
     """
@@ -32,6 +37,7 @@ def download_subtitles(url, output_dir, info):
 
         # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
         'remote_components': ['ejs:github'],
+        'extractor_args': YOUTUBE_EXTRACTOR_ARGS,
     }
 
     try:
@@ -110,6 +116,7 @@ def download_video(url, output_dir="downloads"):
         # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
         # （これが無いと一部フォーマットのURLが無効になり HTTP 403 で停止する）
         'remote_components': ['ejs:github'],
+        'extractor_args': YOUTUBE_EXTRACTOR_ARGS,
 
         # 通信エラー/403対策のリトライ
         'retries': 10,
@@ -302,6 +309,7 @@ def list_formats(url):
 
         # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
         'remote_components': ['ejs:github'],
+        'extractor_args': YOUTUBE_EXTRACTOR_ARGS,
     }
 
     try:
@@ -414,11 +422,10 @@ def download_video_with_format(url, output_dir, format_code):
     ydl_opts = {
         'outtmpl': f'{output_dir}/%(title)s_%(id)s.%(ext)s',
         'format': f'{format_code}+bestaudio/best',  # 指定されたフォーマットに音声を追加
-        'writesubtitles': False,  # 字幕は別途ダウンロード
+        'writesubtitles': False,
         'writeautomaticsub': False,
-        'writethumbnail': True,
-        'embedthumbnail': True,
-        'keepvideo': True,
+        'writethumbnail': False,  # mp4 だけを残す
+        'keepvideo': False,  # 結合前の映像/音声ファイルは削除
         'addmetadata': True,
         'progress_hooks': [progress_hook],
         'ignoreerrors': False,
@@ -429,6 +436,7 @@ def download_video_with_format(url, output_dir, format_code):
 
         # YouTubeの署名/nチャレンジを解くためのEJSスクリプトを取得
         'remote_components': ['ejs:github'],
+        'extractor_args': YOUTUBE_EXTRACTOR_ARGS,
 
         # 通信エラー/403対策のリトライ
         'retries': 10,
@@ -453,11 +461,15 @@ def download_video_with_format(url, output_dir, format_code):
             print(f"👁️ 再生回数: {info.get('view_count', 'Unknown'):,}")
             print("-" * 50)
 
-            # ダウンロード実行
-            ydl.download([url])
+        # 映像が mp4 なら m4a 音声を優先する（Opus と組み合わせると mkv/webm になってしまうため）
+        # フォーマットセレクタは最初の取得時にキャッシュされるので、ダウンロード用に作り直す
+        selected = next((f for f in info.get('formats', []) if f.get('format_id') == format_code), None)
+        if selected and selected.get('ext') == 'mp4':
+            ydl_opts['format'] = f'{format_code}+bestaudio[ext=m4a]/{format_code}+bestaudio/best'
 
-        # 字幕をダウンロード（失敗しても続行）
-        download_subtitles(url, output_dir, info)
+        # ダウンロード実行
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
         print("\n✅ ダウンロード完了！")
 

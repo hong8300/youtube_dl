@@ -102,6 +102,9 @@ uv run youtube_dl_v3.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" /path/to/s
   uv lock --upgrade-package yt-dlp && uv sync
   ```
   （署名解決には `deno`/`node` が必要です。本ツールは `remote_components: ['ejs:github']` を有効化済みです）
+  それでも途中で 403 になる場合、既定の `android_vr` クライアントが GVS PO Token を要求していることが原因です。
+  本ツールは PO Token 不要の `web_embedded` クライアントを優先する設定（`YOUTUBE_EXTRACTOR_ARGS`）にしています。
+  なお音声フォーマットは多言語吹替で `251-N` 形式になることがあるため、`--format` 指定時の音声は `bestaudio` を自動選択します。
 
 ## ディレクトリ構成
 
